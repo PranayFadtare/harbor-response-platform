@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Column;
 
 @Entity
 @Table(name = "emergency_requests")
@@ -19,11 +20,21 @@ public class EmergencyRequest {
 
     private String name;
     private String phone;
+
+    @Column(length = 1000)
     private String details;
     private String location;
+    private Double latitude;
+    private Double longitude;
     private String status;
     private String requesterEmail;
     private LocalDateTime createdAt;
+
+    @Column(length = 500)
+    private String needTags;
+
+    @Column(length = 10)
+    private String priority;
 
     public EmergencyRequest() {
     }
@@ -35,6 +46,32 @@ public class EmergencyRequest {
         }
         if (status == null || status.isBlank()) {
             status = "OPEN";
+        }
+        if (priority == null || priority.isBlank()) {
+            computePriority();
+        }
+    }
+
+    public void computePriority() {
+        if (needTags == null || needTags.isBlank()) {
+            priority = "P4";
+            return;
+        }
+        String tags = needTags.toLowerCase();
+        if (tags.contains("trapped") || tags.contains("rescue")) {
+            priority = "P1";
+        } else if (tags.contains("medical")) {
+            priority = tags.contains("infant") || tags.contains("elderly") ? "P1" : "P2";
+        } else if (tags.contains("infant") || tags.contains("elderly")) {
+            priority = "P2";
+        } else if (tags.contains("shelter")) {
+            priority = "P3";
+        } else if (tags.contains("food") || tags.contains("water")) {
+            priority = "P3";
+        } else if (tags.contains("power") || tags.contains("utilities")) {
+            priority = "P4";
+        } else {
+            priority = "P4";
         }
     }
 
@@ -78,6 +115,22 @@ public class EmergencyRequest {
         this.location = location;
     }
 
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -100,5 +153,21 @@ public class EmergencyRequest {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getNeedTags() {
+        return needTags;
+    }
+
+    public void setNeedTags(String needTags) {
+        this.needTags = needTags;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
     }
 }

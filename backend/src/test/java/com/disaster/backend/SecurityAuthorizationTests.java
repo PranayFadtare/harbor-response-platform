@@ -114,9 +114,21 @@ class SecurityAuthorizationTests {
     }
 
     @Test
-    void usersCannotReadDisasterReports() throws Exception {
+    void usersCanReadDisasterReports() throws Exception { mockMvc.perform(get("/api/disasters").with(user("user@example.org").roles("USER"))).andExpect(status().isOk()); mockMvc.perform(post("/api/disasters").with(user("user@example.org").roles("USER")).with(csrf()).contentType(MediaType.APPLICATION_JSON).content("{\"title\":\"Wildfire\"}")).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void userCanReadDisasterCreatedByAdmin() throws Exception {
+        mockMvc.perform(post("/api/disasters")
+                        .with(user("admin@example.org").roles("ADMIN"))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Riverside Flood\",\"type\":\"Flood\",\"severity\":\"High\",\"location\":\"Riverside\"}"))
+                .andExpect(status().isCreated());
+
         mockMvc.perform(get("/api/disasters").with(user("user@example.org").roles("USER")))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Riverside Flood")));
     }
 
     @Test
@@ -156,10 +168,12 @@ class SecurityAuthorizationTests {
                         .with(user("avery@example.org").roles("USER"))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Avery\",\"phone\":\"555-0100\",\"location\":\"North District\",\"details\":\"Need water\",\"status\":\"RESOLVED\",\"requesterEmail\":\"admin@example.org\"}"))
+                        .content("{\"name\":\"Avery\",\"phone\":\"555-0100\",\"location\":\"North District\",\"latitude\":40.7128,\"longitude\":-74.0060,\"details\":\"Need water\",\"status\":\"RESOLVED\",\"requesterEmail\":\"admin@example.org\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(containsString("avery@example.org")))
                 .andExpect(content().string(containsString("OPEN")))
+                .andExpect(jsonPath("$.latitude").value(40.7128))
+                .andExpect(jsonPath("$.longitude").value(-74.006))
                 .andExpect(content().string(not(containsString("admin@example.org"))));
     }
 }

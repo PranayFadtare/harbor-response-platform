@@ -6,6 +6,7 @@ import com.disaster.backend.model.EmergencyRequest;
 import com.disaster.backend.repository.EmergencyRequestRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -52,6 +53,7 @@ public class EmergencyController {
         request.setId(null);
         request.setRequesterEmail(user.getUsername());
         request.setStatus("OPEN");
+        request.computePriority();
         return ResponseEntity.status(HttpStatus.CREATED).body(emergencyRequestRepository.save(request));
     }
 
@@ -64,7 +66,20 @@ public class EmergencyController {
         request.setPhone(updatedRequest.getPhone());
         request.setDetails(updatedRequest.getDetails());
         request.setLocation(updatedRequest.getLocation());
+        request.setLatitude(updatedRequest.getLatitude());
+        request.setLongitude(updatedRequest.getLongitude());
         request.setStatus(updatedRequest.getStatus());
+        request.setNeedTags(updatedRequest.getNeedTags());
+        request.computePriority();
         return emergencyRequestRepository.save(request);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteRequest(@PathVariable Long id) {
+        if (!emergencyRequestRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        emergencyRequestRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

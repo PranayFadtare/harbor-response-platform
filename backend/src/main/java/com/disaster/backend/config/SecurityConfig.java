@@ -1,7 +1,5 @@
 package com.disaster.backend.config;
 
-import java.util.List;
-
 import com.disaster.backend.model.AppUser;
 import com.disaster.backend.repository.AppUserRepository;
 import org.springframework.context.annotation.Bean;
@@ -83,10 +81,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/csrf", "/api/auth/register", "/api/auth/login").permitAll()
                         .requestMatchers("/api/auth/me", "/api/auth/logout").authenticated()
                         .requestMatchers("/h2-console/**").hasRole("ADMIN")
-                        .requestMatchers("/api/disasters/**", "/api/dashboard/**").hasRole("ADMIN")
+                        .requestMatchers("/api/dashboard/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/disasters/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/disasters/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/emergency-requests/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/emergency-requests/**").hasRole("ADMIN")
                         .requestMatchers("/api/emergency-requests/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/safety-checkins/**").hasAnyRole("ADMIN", "USER")
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, exception) -> response.sendError(401))
